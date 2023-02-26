@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import * as ImageService from 'service/image-service';
 import { Button, Grid, GridItem, CardItem } from 'components';
@@ -7,65 +7,30 @@ import { SearchFormFoImg } from 'components/SearchForm/SearchFormFoImg';
 export const Gallery = () => {
   const [photos, setPhotos] = useState([]);
   const [page, setPage] = useState(1);
-  const [query, setQuery] = useState('moto');
+  const [query, setQuery] = useState('sport');
 
   const imagesRef = useRef(null);
-  //  imagesRef = createRef();
-  useEffect(() => {
-    console.log(imagesRef);
-  }, [imagesRef.current]);
+  const imagesLengthRef = useRef(null);
 
-  useEffect(() => {
-    const fetchImages = async () => {
-      const { photos } = await ImageService.getImages(query, page);
-      setPhotos(prevPhotos => (page > 1 ? [...prevPhotos, ...photos] : photos));
-    };
-    fetchImages();
+  const fetchImages = useCallback(async () => {
+    const { photos } = await ImageService.getImages(query, page);
+    setPhotos(prevPhotos => (page > 1 ? [...prevPhotos, ...photos] : photos));
   }, [page, query]);
-  // fetchImages = async () => {
-  //   const { photos } = await ImageService.getImages(
-  //     this.state.query,
-  //     this.state.page
-  //   );
-  //   this.setState(prev => ({
-  //     photos: prev.page > 1 ? [...prev.photos, ...photos] : photos,
-  //   }));
-  // };
-  //  componentDidMount = async () => {
-  //     const { photos } = await ImageService.getImages();
-  //     this.setState({ photos });
-  //   };
-  // componentDidUpdate(prevProps, prevState, snapShot) {
-  //   if (
-  //     prevState.page !== this.state.page ||
-  //     prevState.query !== this.state.query
-  //   ) {
-  //     this.fetchImages();
-  //   }
 
-  //   if (snapShot) {
-  //     window.scrollTo({ top: snapShot, behavior: 'smooth' });
-  //   }
-  // }
+  useEffect(() => {
+    fetchImages();
+    imagesLengthRef.current = photos.length;
+  }, [fetchImages, page, photos.length, query]);
 
-  //
-  //
-  //
-  //
-
-  // getSnapshotBeforeUpdate(_, prevState) {
-  //   // console.dir(this.imagesRef.current);
-  //   if (prevState.photos.length !== this.state.photos.length) {
-  //     console.log(window.scrollY);
-  //     console.log(this.imagesRef?.current.scrollHeight);
-
-  //     return (
-  //       this.imagesRef.current?.scrollHeight +
-  //         this.imagesRef.current?.offsetTop ?? null
-  //     );
-  //   }
-  //   return null;
-  // }
+  useEffect(() => {
+    if (page > 1) {
+      imagesRef.current.children[imagesLengthRef.current].scrollIntoView({
+        behavior: 'smooth',
+      });
+      // console.log(imagesLengthRef.current);
+      // console.log(photos.length);
+    }
+  }, [page, photos.length]);
 
   const handleSearchSubmit = query => {
     setPage(1);
